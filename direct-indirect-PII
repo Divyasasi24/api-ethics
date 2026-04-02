@@ -1,0 +1,54 @@
+import pandas as pd
+import hashlib
+import re
+# Sample DataFrame (replace with your API data)
+data = pd.DataFrame({
+    "full_name": ["John Doe", "Jane Smith"],
+    "email": ["john@example.com", "jane@example.com"],
+    "date_of_birth": ["1990-05-15", "1985-08-22"],
+    "zip_code": ["600001", "600045"],
+    "job_title": ["Engineer", "Doctor"],
+    "diagnosis_notes": [
+        "Patient John has diabetes.",
+        "Jane reports severe headache."
+    ]
+})
+
+
+# Pseudonymization function
+
+def hash_value(value):
+    return hashlib.sha256(value.encode()).hexdigest()
+      
+#  Masking functions
+def mask_dob(dob):
+    return dob[:4]  # Keep only year
+
+def mask_zip(zip_code):
+    return zip_code[:3] + "XX"  # Mask last digits
+
+def clean_notes(text):
+    # Remove names (basic example)
+    text = re.sub(r'\b[A-Z][a-z]+\b', '[REDACTED]', text)
+    return text
+
+#  Data Cleaning Pipeline
+
+# Drop direct identifier
+data = data.drop(columns=["full_name"])
+
+# Pseudonymize email
+data["email"] = data["email"].apply(hash_value)
+
+# Mask DOB
+data["date_of_birth"] = data["date_of_birth"].apply(mask_dob)
+
+# Mask ZIP code
+data["zip_code"] = data["zip_code"].apply(mask_zip)
+
+# Clean diagnosis notes
+data["diagnosis_notes"] = data["diagnosis_notes"].apply(clean_notes)
+
+# Final cleaned dataset
+
+print(data)
